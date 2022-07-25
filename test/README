@@ -1,0 +1,30 @@
+To run the J-- reference compiler:
+
+% cd reference
+% ./main -h				(for options)
+
+Use the reference compiler's command-line options to stop and see its
+output at earlier stages.  At present the scanner, parser, semantic
+checker, and MIPS code generator output are available.  The generated
+MIPS code omits the run-time system.
+
+% ./main -ptokenize testfile		(for scanner output)
+
+The scanner output is a list of tokens.  Each token is a triple
+(token type as string, line number as integer, token lexeme as string).
+Note that the EOF is implicit in the list ending, so there's no
+explicit EOF token being produced here.
+
+% ./main -pparse testfile		(for parser AST output)
+
+The parser output is a textual representation of the AST.
+
+% ./main -psemantic testfile		(for semantic checker's AST output)
+
+The semantic checker's output is a textual representation of the AST
+that is decorated with more information.
+
+% ./main -pirgen testfile		(for IR code)
+
+This is for curiosity only, since ***YOU DO NOT NEED TO GENERATE ANY
+INTERMEDIATE REPRESENTATION***.

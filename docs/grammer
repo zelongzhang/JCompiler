@@ -1,0 +1,240 @@
+// Contains all J-- grammar rules as stated in Appendix of https://pages.cpsc.ucalgary.ca/~aycock/411/spec.html
+// Grammar rules are converted from yacc to EBNF
+// Immediate left recursion and left factoring grammars have been fixed
+
+start           : /* empty */
+                | globaldeclarations
+                ;
+start -> /* empty */ | globaldeclarations
+
+
+literal         : NUMBER
+                | STRING
+                | TRUE
+                | FALSE
+                ;
+literal -> NUMBER | STRING | TRUE | FALSE
+
+
+type            : BOOLEAN
+                | INT
+                ;
+type -> BOOLEAN | INT
+
+
+globaldeclarations      : globaldeclaration
+                        | globaldeclarations globaldeclaration
+                        ;
+globaldeclarations -> globaldeclaration globaldeclarationsp
+globaldeclarationsp -> globaldeclaration globaldeclarationsp | /* empty */
+
+globaldeclaration       : variabledeclaration
+                        | functiondeclaration
+                        | mainfunctiondeclaration
+                        ;
+globaldeclaration -> variabledeclaration | functiondeclaration | mainfunctiondeclaration
+
+
+variabledeclaration     : type identifier ';'
+                        ;
+variabledeclaration -> type identifier ';'
+
+
+identifier              : ID
+                        ;
+identifier -> ID
+
+
+functiondeclaration     : functionheader block
+                        ;
+functiondeclaration -> functionheader block
+
+
+functionheader          : type functiondeclarator
+                        | VOID functiondeclarator
+                        ;
+functionheader -> type functiondeclarator | VOID functiondeclarator
+
+
+functiondeclarator      : identifier '(' formalparameterlist ')'
+                        | identifier '(' ')'
+                        ;
+functiondeclarator -> identifier '(' functiondeclaratorp
+functiondeclaratorp -> formalparameterlist ')' | ')'
+
+
+formalparameterlist     : formalparameter
+                        | formalparameterlist ',' formalparameter
+                        ;
+formalparameterlist -> formalparameter formalparameterlistp
+formalparameterlistp -> ',' formalparameter formalparameterlistp | /* empty */
+
+
+formalparameter         : type identifier
+                        ;
+formalparameter -> type identifier
+
+
+mainfunctiondeclaration : mainfunctiondeclarator block
+                        ;
+mainfunctiondeclaration -> mainfunctiondeclarator block
+
+
+mainfunctiondeclarator  : identifier '(' ')'
+                        ;
+mainfunctiondeclarator -> identifier '(' ')'
+
+
+block                   : '{' blockstatements '}'
+                        | '{' '}'
+                        ;
+block -> '{' blockp
+blockp -> blockstatements '}' | '}'
+
+
+blockstatements         : blockstatement
+                        | blockstatements blockstatement
+                        ;
+blockstatements -> blockstatement blockstatementsp
+blockstatementsp -> blockstatement blockstatementsp | /* empty */
+
+blockstatement          : variabledeclaration
+                        | statement
+                        ;
+blockstatement -> variabledeclaration | statement
+
+
+statement               : block
+                        | ';'
+                        | statementexpression ';'
+                        | BREAK ';'
+                        | RETURN expression ';'
+                        | RETURN ';'
+                        | IF '(' expression ')' statement
+                        | IF '(' expression ')' statement ELSE statement
+                        | WHILE '(' expression ')' statement
+                        ;
+statement -> block 
+            | ';' 
+            | statementexpression ';' 
+            | BREAK ';' 
+            | RETURN statementret 
+            | IF '(' expression ')' statement statementif 
+            | WHILE '(' expression ')' statement
+statementret ->         expression ';' | ';'
+statementif ->          /* empty */ | ELSE statement
+
+statementexpression     : assignment
+                        | functioninvocation
+                        ;
+statementexpression -> assignment | functioninvocation
+
+
+primary                 : literal
+                        | '(' expression ')'
+                        | functioninvocation
+                        ;
+primary -> literal | '(' expression ')' | functioninvocation
+
+
+argumentlist            : expression
+                        | argumentlist ',' expression
+                        ;
+argumentlist -> expression argumentlistp
+argumentlistp -> ',' expression argumentlistp | /* empty */
+
+
+functioninvocation      : identifier '(' argumentlist ')'
+                        | identifier '(' ')'
+                        ;
+functioninvocation -> identifier '(' functioninvocationp
+functioninvocationp -> argumentlist ')' | ')'
+
+
+postfixexpression       : primary
+                        | identifier
+                        ;
+postfixexpression -> primary | identifier
+
+
+unaryexpression         : '-' unaryexpression
+                        | '!' unaryexpression
+                        | postfixexpression
+                        ;
+unaryexpression -> '-' unaryexpression | '!' unaryexpression | postfixexpression
+
+
+multiplicativeexpression: unaryexpression
+                        | multiplicativeexpression '*' unaryexpression
+                        | multiplicativeexpression '/' unaryexpression
+                        | multiplicativeexpression '%' unaryexpression
+                        ;
+multiplicativeexpression -> unaryexpression multiplicativeexpressionp
+multiplicativeexpressionp -> '*' unaryexpression multiplicativeexpressionp 
+                            | '/' unaryexpression multiplicativeexpressionp 
+                            | '%' unaryexpression multiplicativeexpressionp 
+                            | /* empty */
+
+
+additiveexpression      : multiplicativeexpression
+                        | additiveexpression '+' multiplicativeexpression
+                        | additiveexpression '-' multiplicativeexpression
+                        ;
+additiveexpression -> multiplicativeexpression additiveexpressionp
+additiveexpressionp -> '+' multiplicativeexpression additiveexpressionp 
+                        | '-' multiplicativeexpression additiveexpressionp 
+                        | /* empty */
+
+
+relationalexpression    : additiveexpression
+                        | relationalexpression '<' additiveexpression
+                        | relationalexpression '>' additiveexpression
+                        | relationalexpression LE additiveexpression
+                        | relationalexpression GE additiveexpression
+                        ;
+relationalexpression -> additiveexpression relationalexpressionp
+relationalexpressionp -> '<' additiveexpression relationalexpressionp
+                        | '>' additiveexpression relationalexpressionp
+                        | LE additiveexpression relationalexpressionp
+                        | GE additiveexpression relationalexpressionp
+                        | /* empty */
+
+
+equalityexpression      : relationalexpression
+                        | equalityexpression EQ relationalexpression
+                        | equalityexpression NE relationalexpression
+                        ;
+equalityexpression -> relationalexpression equalityexpressionp
+equalityexpressionp -> EQ relationalexpression equalityexpressionp 
+                        | NE relationalexpression equalityexpressionp
+                        | /* empty */
+
+
+conditionalandexpression: equalityexpression
+                        | conditionalandexpression AND equalityexpression
+                        ;
+conditionalandexpression -> equalityexpression conditionalandexpressionp
+conditionalandexpressionp -> AND equalityexpression conditionalandexpressionp | /* empty */
+
+
+conditionalorexpression : conditionalandexpression
+                        | conditionalorexpression OR conditionalandexpression
+                        ;
+conditionalorexpression -> conditionalandexpression conditionalorexpressionp
+conditionalorexpressionp -> OR conditionalandexpression conditionalorexpressionp | /* empty */
+
+
+assignmentexpression    : conditionalorexpression
+                        | assignment
+                        ;
+assignmentexpression -> conditionalorexpression | assignment
+
+
+assignment              : identifier '=' assignmentexpression
+                        ;
+assignment -> identifier '=' assignmentexpression
+
+
+expression              : assignmentexpression
+                        ;
+expression -> assignmentexpression

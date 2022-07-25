@@ -1,0 +1,13 @@
+# Test files and reference compiler
+# test/
+
+# Object files
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Executables
+*.exe
